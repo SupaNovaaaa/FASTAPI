@@ -8,12 +8,24 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from sqlalchemy.orm import Session
 import time
-#from . import models,schemas
+from sqlalchemy.sql.functions import mode
+from passlib.context import CryptContext
+from . import models, schemas
+from app.utils import hash
+from .database import engine, get_db
+#from app.schemas import UserCreate
 
-from app import models, schemas
+
+#from . import models,schemas
+from app import schemas
+from app import models
+#from app import models, schemas
+def some_function():
+    from app.schemas import UserCreate
 
 from .database import engine,SessionLocal
 
+pwd_context=CryptContext(schemes=["bcrypt"],deprecated="auto")
 models.Base.metadata.create_all(bind=engine)
 class PostBase(BaseModel):
     title: str
@@ -76,12 +88,17 @@ def get_posts(db:Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
-@app.post("/posts",status_code=status.HTTP_201_CREATED)
+@app.post("/posts",status_code=status.HTTP_201_CREATED,response_model=schemas.Post)
 def create_posts(post: schemas.Post,db:Session = Depends(get_db)):
     #cursor.execute("""INSERT INTO posts(title,content, published) VALUES(%s, %s,%s) RETURNING*  """,(post.title,post.content,post.published))
     #new_post=cursor.fetchone()
     #conn.commit()
-    print(**post.dict())
+    ##new_post=models.Post(**post.dict())
+    result = post.dict()
+
+    for i in result.keys():
+        print(f"{i}:{result[i]}")
+
     new_post=models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -93,8 +110,9 @@ def create_posts(post: schemas.Post,db:Session = Depends(get_db)):
 def get_post(id: int,db:Session = Depends(get_db)):
     #cursor.execute("""SELECT *FROM posts WHERE id =%s""",(str(id),))
     #post = cursor.fetchone()
+    #
+    #
     post =db.query(models.Post).filter(models.Post.id==id).first()
-    print(post)
     if not post:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,detail = f"post with id:{id} was not found")
     return post
@@ -122,6 +140,7 @@ def update_post(id: int,updated_post: schemas.Post,db:Session = Depends(get_db))
 
     post = post_query.first()
 
+
     if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail = f"post with id:{id} does not exist")
     
@@ -129,4 +148,18 @@ def update_post(id: int,updated_post: schemas.Post,db:Session = Depends(get_db))
 
     db.commit()
     return  post_query.first()
+
+@app.post("/users",status_code=status.HTTP_201_CREATED,response_model=schemas.UserOut)
+def create_user(user:schemas.UserCreate,db:Session = Depends(get_db)):
     
+    #hash the password - user.password
+    
+    hashed_password = hash(user.password)
+    user.password = hashed_password
+    new_user=models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user
+

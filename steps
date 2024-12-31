@@ -1,0 +1,24 @@
+1. Create a new folder
+2. Create a new virtual environment
+	python3 -m venv myvenv
+3. Activate the virtual emv
+	source venv/bin/activate
+4. app.py start with boiler code that is in website
+5. if getting error: error while attempting to bind on address ... address already in use
+	use command: lsof -i : 8000(or whatever address it is)
+	then use kill -9 29210
+	then use the uvicorn command 
+6. everytime you make a change run uvicorn app:app --reload
+
+
+http://127.0.0.1:8000/docs#/default/delete_post_posts__id__delete
+
+to install anything on linux use: sudo apt install package_name
+
+POSTGRES
+sudo apt-get install python3-psycopg2
+
+CREATE ENVIRONMENT VARIABLE:
+in terminal type: export MY_DB_URL="localhost:5432" #to create variable
+printenv #to access all the variable that have been created by the system
+echo $MY_DB_URL #to access value of the variable created

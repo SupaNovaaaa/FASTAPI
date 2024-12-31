@@ -22,3 +22,5 @@ CREATE ENVIRONMENT VARIABLE:
 in terminal type: export MY_DB_URL="localhost:5432" #to create variable
 printenv #to access all the variable that have been created by the system
 echo $MY_DB_URL #to access value of the variable created
+
+pip install -r requirement.txt
